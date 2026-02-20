@@ -1,0 +1,68 @@
+2026-02-15 13:59:53 [INFO] === setup_hdfs.sh started ===
+2026-02-15 13:59:53 [INFO] Waiting for HDFS (max 60 attempts, 5s apart) ...
+2026-02-15 13:59:55 [OK] HDFS is ready (attempt 1).
+2026-02-15 13:59:55 [INFO] Creating base directory: /user/hadoopuser/project
+2026-02-15 13:59:56 [INFO] Creating: /user/hadoopuser/project/logs
+2026-02-15 13:59:57 [INFO] Creating: /user/hadoopuser/project/db_data
+2026-02-15 13:59:59 [INFO] Creating: /user/hadoopuser/project/input
+2026-02-15 14:00:00 [INFO] Creating: /user/hadoopuser/project/output
+2026-02-15 14:00:01 [INFO] Setting permissions 755 on /user/hadoopuser/project (recursive)
+2026-02-15 14:00:03 [OK] Directories created and permissions set.
+2026-02-15 14:00:03 [INFO] Verifying directory structure ...
+2026-02-15 14:00:05 [OK]   /user/hadoopuser/project/logs exists.
+2026-02-15 14:00:07 [OK]   /user/hadoopuser/project/db_data exists.
+2026-02-15 14:00:08 [OK]   /user/hadoopuser/project/input exists.
+2026-02-15 14:00:09 [OK]   /user/hadoopuser/project/output exists.
+2026-02-15 14:00:09 [OK] Verification passed. Listing:
+2026-02-15 14:00:09 [INFO] === setup_hdfs.sh finished successfully ===
+2026-02-15 14:11:50 [INFO] === setup_hdfs.sh started ===
+2026-02-15 14:11:50 [INFO] Waiting for HDFS (max 60 attempts, 5s apart) ...
+2026-02-15 14:11:52 [OK] HDFS is ready (attempt 1).
+2026-02-15 14:11:52 [INFO] Creating base directory: /user/hadoopuser/project
+2026-02-15 14:11:54 [INFO] Creating: /user/hadoopuser/project/logs
+2026-02-15 14:11:55 [INFO] Creating: /user/hadoopuser/project/db_data
+2026-02-15 14:11:56 [INFO] Creating: /user/hadoopuser/project/input
+2026-02-15 14:11:58 [INFO] Creating: /user/hadoopuser/project/output
+2026-02-15 14:11:59 [INFO] Setting permissions 755 on /user/hadoopuser/project (recursive)
+2026-02-15 14:12:01 [OK] Directories created and permissions set.
+2026-02-15 14:12:01 [INFO] Verifying directory structure ...
+2026-02-15 14:12:04 [OK]   /user/hadoopuser/project/logs exists.
+2026-02-15 14:12:05 [OK]   /user/hadoopuser/project/db_data exists.
+2026-02-15 14:12:06 [OK]   /user/hadoopuser/project/input exists.
+2026-02-15 14:12:07 [OK]   /user/hadoopuser/project/output exists.
+2026-02-15 14:12:07 [OK] Verification passed. Listing:
+2026-02-15 14:12:08 [INFO] === setup_hdfs.sh finished successfully ===
+2026-02-15 14:18:19 [INFO] === setup_hdfs.sh started ===
+2026-02-15 14:18:19 [INFO] Waiting for HDFS (max 60 attempts, 5s apart) ...
+2026-02-15 14:18:22 [OK] HDFS is ready (attempt 1).
+2026-02-15 14:18:22 [INFO] Creating base directory: /user/hadoopuser/project
+2026-02-15 14:18:25 [INFO] Creating: /user/hadoopuser/project/logs
+2026-02-15 14:18:27 [INFO] Creating: /user/hadoopuser/project/db_data
+2026-02-15 14:18:30 [INFO] Creating: /user/hadoopuser/project/input
+2026-02-15 14:18:32 [INFO] Creating: /user/hadoopuser/project/output
+2026-02-15 14:18:34 [INFO] Setting permissions 755 on /user/hadoopuser/project (recursive)
+2026-02-15 14:18:36 [OK] Directories created and permissions set.
+2026-02-15 14:18:36 [INFO] Verifying directory structure ...
+2026-02-15 14:18:41 [OK]   /user/hadoopuser/project/logs exists.
+2026-02-15 14:18:43 [OK]   /user/hadoopuser/project/db_data exists.
+2026-02-15 14:18:45 [OK]   /user/hadoopuser/project/input exists.
+2026-02-15 14:18:47 [OK]   /user/hadoopuser/project/output exists.
+2026-02-15 14:18:47 [OK] Verification passed. Listing:
+2026-02-15 14:18:47 [INFO] === setup_hdfs.sh finished successfully ===
+2026-02-15 14:32:00 [INFO] === setup_hdfs.sh started ===
+2026-02-15 14:32:00 [INFO] Waiting for HDFS (max 60 attempts, 5s apart) ...
+2026-02-15 14:32:03 [OK] HDFS is ready (attempt 1).
+2026-02-15 14:32:03 [INFO] Creating base directory: /user/hadoopuser/project
+2026-02-15 14:32:05 [INFO] Creating: /user/hadoopuser/project/logs
+2026-02-15 14:32:08 [INFO] Creating: /user/hadoopuser/project/db_data
+2026-02-15 14:32:10 [INFO] Creating: /user/hadoopuser/project/input
+2026-02-15 14:32:12 [INFO] Creating: /user/hadoopuser/project/output
+2026-02-15 14:32:15 [INFO] Setting permissions 755 on /user/hadoopuser/project (recursive)
+2026-02-15 14:32:17 [OK] Directories created and permissions set.
+2026-02-15 14:32:17 [INFO] Verifying directory structure ...
+2026-02-15 14:32:22 [OK]   /user/hadoopuser/project/logs exists.
+2026-02-15 14:32:24 [OK]   /user/hadoopuser/project/db_data exists.
+2026-02-15 14:32:26 [OK]   /user/hadoopuser/project/input exists.
+2026-02-15 14:32:29 [OK]   /user/hadoopuser/project/output exists.
+2026-02-15 14:32:29 [OK] Verification passed. Listing:
+2026-02-15 14:32:29 [INFO] === setup_hdfs.sh finished successfully ===

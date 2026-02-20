@@ -1,0 +1,4 @@
+# Normalize line endings for scripts (LF) so they run in Linux containers
+*.sh text eol=lf
+*.py text eol=lf
+*.conf text eol=lf

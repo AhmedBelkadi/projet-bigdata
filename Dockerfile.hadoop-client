@@ -1,0 +1,85 @@
+# =============================================================================
+# Custom Hadoop client image: Hadoop CLI + Apache Flume + Apache Sqoop
+# Base: BDE2020 NodeManager (Hadoop 3.2.1, Java 8) — we only use client libs.
+# Use this container to run Flume agents and Sqoop jobs against the cluster.
+# =============================================================================
+
+FROM bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+
+USER root
+
+# -----------------------------------------------------------------------------
+# Use Debian Stretch archive (default repos are EOL and return 404)
+# -----------------------------------------------------------------------------
+RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list \
+    && echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
+
+# -----------------------------------------------------------------------------
+# Install dependencies: curl, tar, Python 3 (for Flume exec + MapReduce scripts)
+# -----------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    -o Acquire::Check-Valid-Until=false \
+    curl \
+    tar \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install --no-cache-dir faker
+
+# -----------------------------------------------------------------------------
+# Apache Flume 1.11.0 (binary distribution)
+# -----------------------------------------------------------------------------
+ENV FLUME_VERSION=1.11.0
+ENV FLUME_HOME=/opt/flume
+
+RUN curl -sL "https://archive.apache.org/dist/flume/${FLUME_VERSION}/apache-flume-${FLUME_VERSION}-bin.tar.gz" \
+    -o /tmp/flume.tar.gz \
+    && tar -xzf /tmp/flume.tar.gz -C /opt \
+    && mv "/opt/apache-flume-${FLUME_VERSION}-bin" "${FLUME_HOME}" \
+    && rm /tmp/flume.tar.gz
+
+# Flume needs Hadoop libs on classpath; use same Hadoop as cluster
+ENV HADOOP_HOME=/opt/hadoop-3.2.1
+ENV FLUME_CLASSPATH="${HADOOP_HOME}/share/hadoop/common/*:${HADOOP_HOME}/share/hadoop/common/lib/*:${FLUME_HOME}/lib/*"
+
+# -----------------------------------------------------------------------------
+# Apache Sqoop 1.4.7 (Hadoop 2.6 binary; often works with 3.x for JDBC jobs)
+# For full Hadoop 3 compatibility, consider building Sqoop from source.
+# -----------------------------------------------------------------------------
+ENV SQOOP_VERSION=1.4.7
+ENV SQOOP_HOME=/opt/sqoop
+ENV SQOOP_HADOOP_VERSION=2.6.0
+
+RUN curl -sL "https://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-${SQOOP_HADOOP_VERSION}.tar.gz" \
+    -o /tmp/sqoop.tar.gz \
+    && tar -xzf /tmp/sqoop.tar.gz -C /opt \
+    && mv "/opt/sqoop-${SQOOP_VERSION}.bin__hadoop-${SQOOP_HADOOP_VERSION}" "${SQOOP_HOME}" \
+    && rm /tmp/sqoop.tar.gz
+
+# MySQL JDBC driver for Sqoop (required for MySQL ↔ HDFS)
+ENV MYSQL_CONNECTOR_VERSION=8.0.33
+RUN curl -sL "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/${MYSQL_CONNECTOR_VERSION}/mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.jar" \
+    -o "${SQOOP_HOME}/lib/mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.jar"
+
+# Commons Lang (required by Sqoop 1.4.7 for StringUtils etc.)
+RUN curl -sL "https://repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" \
+    -o "${SQOOP_HOME}/lib/commons-lang-2.6.jar"
+
+# -----------------------------------------------------------------------------
+# PATH and default config (point to cluster namenode)
+# Client container overrides ENTRYPOINT so BDE env-based config is not applied.
+# Install core-site so hadoop/hdfs commands and streaming jobs use cluster HDFS.
+# -----------------------------------------------------------------------------
+ENV PATH="${PATH}:${HADOOP_HOME}/bin:${FLUME_HOME}/bin:${SQOOP_HOME}/bin"
+ENV HADOOP_CONF_DIR=/etc/hadoop
+
+COPY conf/core-site-client.xml /opt/hadoop-3.2.1/etc/hadoop/core-site.xml
+# Default: local MR (streaming runs in client). Sqoop overrides with -D mapreduce.framework.name=yarn.
+COPY conf/mapred-site-client.xml /opt/hadoop-3.2.1/etc/hadoop/mapred-site.xml
+COPY conf/yarn-site-client.xml /opt/hadoop-3.2.1/etc/hadoop/yarn-site.xml
+
+# Override entrypoint so this image does not start NodeManager; used as client only.
+# docker-compose runs: tail -f /dev/null; you can exec in and run flume-ng, sqoop, hadoop.
+ENTRYPOINT []
+
+CMD ["tail", "-f", "/dev/null"]

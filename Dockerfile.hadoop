@@ -1,0 +1,111 @@
+# =============================================================================
+# Dockerfile.hadoop — Production Hadoop client image
+# =============================================================================
+# Base: BDE2020 hadoop-base (Hadoop 3.2.1, Java 8 on Debian 9).
+# Includes: Python 3.8+, pip, Apache Flume 1.9.0, Apache Sqoop 1.4.7,
+#           MySQL Connector/J, and Python faker. Use for data ingest (Flume),
+#           RDBMS sync (Sqoop), and Python scripts (e.g. faker data gen).
+# =============================================================================
+
+FROM bde2020/hadoop-base:2.0.0-hadoop3.2.1-java8
+
+USER root
+
+# -----------------------------------------------------------------------------
+# Build dependencies and Python 3.8 (Debian 9 has only 3.5; we build from source)
+# -----------------------------------------------------------------------------
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libffi-dev \
+    uuid-dev \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 3.8.18 (last 3.8.x release; security-supported)
+ENV PYTHON_VERSION=3.8.18
+ENV PYTHON_UNVERSIONED=/opt/python3
+
+RUN set -ex \
+    && wget -q "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz" -O /tmp/Python.tgz \
+    && tar -xzf /tmp/Python.tgz -C /tmp \
+    && cd "/tmp/Python-${PYTHON_VERSION}" \
+    && ./configure --enable-optimizations --prefix=${PYTHON_UNVERSIONED} --with-ensurepip=install \
+    && make -j$(nproc) \
+    && make altinstall \
+    && rm -rf /tmp/Python.tgz "/tmp/Python-${PYTHON_VERSION}"
+
+# Symlink so "python3" and "pip3" point to 3.8
+RUN ln -sf "${PYTHON_UNVERSIONED}/bin/python3.8" "${PYTHON_UNVERSIONED}/bin/python3" \
+    && ln -sf "${PYTHON_UNVERSIONED}/bin/pip3.8"  "${PYTHON_UNVERSIONED}/bin/pip3" \
+    && ln -sf "${PYTHON_UNVERSIONED}/bin/python3.8" /usr/local/bin/python3 \
+    && ln -sf "${PYTHON_UNVERSIONED}/bin/pip3.8"   /usr/local/bin/pip3"
+
+ENV PATH="${PYTHON_UNVERSIONED}/bin:/usr/local/bin:${PATH}"
+
+# -----------------------------------------------------------------------------
+# Apache Flume 1.9.0 (binary distribution)
+# -----------------------------------------------------------------------------
+ENV FLUME_VERSION=1.9.0
+ENV FLUME_HOME=/opt/flume
+
+RUN wget -q "https://archive.apache.org/dist/flume/${FLUME_VERSION}/apache-flume-${FLUME_VERSION}-bin.tar.gz" -O /tmp/flume.tar.gz \
+    && tar -xzf /tmp/flume.tar.gz -C /opt \
+    && mv "/opt/apache-flume-${FLUME_VERSION}-bin" "${FLUME_HOME}" \
+    && rm /tmp/flume.tar.gz
+
+# Flume classpath: Hadoop libs + Flume lib (cluster uses same Hadoop version)
+ENV HADOOP_HOME=/opt/hadoop-3.2.1
+ENV FLUME_CLASSPATH="${HADOOP_HOME}/share/hadoop/common/*:${HADOOP_HOME}/share/hadoop/common/lib/*:${FLUME_HOME}/lib/*"
+
+# -----------------------------------------------------------------------------
+# Apache Sqoop 1.4.7 (binary for Hadoop 2.6; compatible for JDBC with Hadoop 3)
+# -----------------------------------------------------------------------------
+ENV SQOOP_VERSION=1.4.7
+ENV SQOOP_HOME=/opt/sqoop
+ENV SQOOP_HADOOP_VERSION=2.6.0
+
+RUN wget -q "https://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-${SQOOP_HADOOP_VERSION}.tar.gz" -O /tmp/sqoop.tar.gz \
+    && tar -xzf /tmp/sqoop.tar.gz -C /opt \
+    && mv "/opt/sqoop-${SQOOP_VERSION}.bin__hadoop-${SQOOP_HADOOP_VERSION}" "${SQOOP_HOME}" \
+    && rm /tmp/sqoop.tar.gz
+
+# MySQL Connector/J for Sqoop (MySQL ↔ HDFS)
+ENV MYSQL_CONNECTOR_VERSION=8.0.33
+RUN wget -q "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/${MYSQL_CONNECTOR_VERSION}/mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.jar" \
+    -O "${SQOOP_HOME}/lib/mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.jar"
+
+# -----------------------------------------------------------------------------
+# Python: pip, faker (and ensure pip is up to date)
+# -----------------------------------------------------------------------------
+RUN pip3 install --no-cache-dir --upgrade pip \
+    && pip3 install --no-cache-dir faker
+
+# -----------------------------------------------------------------------------
+# Environment: JAVA_HOME, FLUME_HOME, SQOOP_HOME, PATH
+# (JAVA_HOME may be set in base; set explicitly for production consistency.)
+# Configured for all downstream tools:
+#   JAVA_HOME, HADOOP_HOME, HADOOP_CONF_DIR (from base)
+#   FLUME_HOME, FLUME_CLASSPATH, SQOOP_HOME, PATH
+# -----------------------------------------------------------------------------
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH="${HADOOP_HOME}/bin:${FLUME_HOME}/bin:${SQOOP_HOME}/bin:${PATH}"
+
+# -----------------------------------------------------------------------------
+# Working directory for project files (scripts, configs, data)
+# -----------------------------------------------------------------------------
+RUN mkdir -p /project && chmod 755 /project
+WORKDIR /project
+
+# Default: keep container alive for exec/interactive use
+ENTRYPOINT []
+CMD ["tail", "-f", "/dev/null"]

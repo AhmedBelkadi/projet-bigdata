@@ -1,0 +1,228 @@
+# =============================================================================
+# Production-ready Docker Compose: Hadoop Big Data stack
+# =============================================================================
+# Services: NameNode, DataNode, ResourceManager, NodeManager, HistoryServer,
+#          MySQL 8.0 (ecommerce_db), and custom Hadoop client (Flume + Sqoop).
+# Uses BDE2020 Hadoop images. All services share network "bigdata-network".
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # HDFS NameNode: manages file system metadata and namespace.
+  # Web UI: http://localhost:9870 | HDFS RPC: port 9000
+  # ---------------------------------------------------------------------------
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    hostname: namenode
+    restart: unless-stopped
+    ports:
+      - "9870:9870"   # NameNode Web UI
+      - "9000:9000"   # HDFS RPC (client/DataNode communication)
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=bigdata-cluster
+    env_file:
+      - ./hadoop.env
+    networks:
+      - bigdata-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # ---------------------------------------------------------------------------
+  # HDFS DataNode: stores and serves HDFS data blocks.
+  # Starts after NameNode is ready (SERVICE_PRECONDITION).
+  # ---------------------------------------------------------------------------
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    hostname: datanode
+    restart: unless-stopped
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+    networks:
+      - bigdata-network
+    depends_on:
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9864"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # YARN ResourceManager: cluster resource allocation and job scheduling.
+  # Web UI: http://localhost:8088
+  # ---------------------------------------------------------------------------
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    hostname: resourcemanager
+    restart: unless-stopped
+    ports:
+      - "8088:8088"   # ResourceManager Web UI
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode:9864
+    env_file:
+      - ./hadoop.env
+    networks:
+      - bigdata-network
+    depends_on:
+      namenode:
+        condition: service_healthy
+      datanode:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/ws/v1/cluster/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # YARN NodeManager: manages resources and containers on this node.
+  # ---------------------------------------------------------------------------
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    hostname: nodemanager
+    restart: unless-stopped
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    networks:
+      - bigdata-network
+    depends_on:
+      resourcemanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8042"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # YARN HistoryServer: application history and aggregated logs.
+  # Required by hadoop.env for yarn.log_server_url. Web UI: 8188
+  # ---------------------------------------------------------------------------
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    hostname: historyserver
+    restart: unless-stopped
+    volumes:
+      - historyserver_data:/hadoop/yarn/timeline
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    networks:
+      - bigdata-network
+    depends_on:
+      resourcemanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188/applicationhistory"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  # ---------------------------------------------------------------------------
+  # MySQL 8.0: relational store for ecommerce (Sqoop source/target).
+  # Port 3306, database: ecommerce_db
+  # ---------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    hostname: mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ecommerce_db
+      MYSQL_USER: ${MYSQL_USER:-ecommerce}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ecommercepass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - bigdata-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Custom Hadoop client: HDFS/YARN client tools + Apache Flume + Sqoop.
+  # Use for ingest (Flume) and RDBMS sync (Sqoop) with MySQL ecommerce_db.
+  # Build: docker-compose build hadoop-client
+  # ---------------------------------------------------------------------------
+  hadoop-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.hadoop-client
+    image: bigdata-mini-project/hadoop-client:latest
+    container_name: hadoop-client
+    hostname: hadoop-client
+    restart: unless-stopped
+    volumes:
+      - .:/project
+    env_file:
+      - ./hadoop.env
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=ecommerce_db
+    networks:
+      - bigdata-network
+    depends_on:
+      namenode:
+        condition: service_healthy
+      datanode:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    # Keep container running for exec/interactive use (Flume/Sqoop jobs)
+    command: ["tail", "-f", "/dev/null"]
+    healthcheck:
+      test: ["CMD", "hadoop", "version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# =============================================================================
+# Named volumes for persistent data (survive container removal)
+# =============================================================================
+volumes:
+  namenode_data:
+  datanode_data:
+  historyserver_data:
+  mysql_data:
+
+# =============================================================================
+# Shared network for all services (DNS by service name)
+# =============================================================================
+networks:
+  bigdata-network:
+    name: bigdata-network
+    driver: bridge

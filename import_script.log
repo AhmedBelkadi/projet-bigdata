@@ -1,0 +1,64 @@
+2026-02-15 14:02:12 [INFO] INFO === import_script.sh started ===
+2026-02-15 14:02:12 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 14:02:12 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 14:02:13 [ERROR] ERROR Cannot connect to MySQL. Check host, port, user, password, and database.
+2026-02-15 14:13:54 [INFO] INFO === import_script.sh started ===
+2026-02-15 14:13:54 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 14:13:54 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 14:13:56 [OK] OK Sqoop can connect to MySQL.
+2026-02-15 14:13:56 [INFO] INFO Sqoop import: customers (status='ACTIVE') -> /user/hadoopuser/project/db_data/customers
+2026-02-15 14:14:02 [ERROR] ERROR Sqoop import failed: customers
+2026-02-15 14:25:57 [INFO] INFO === import_script.sh started ===
+2026-02-15 14:25:57 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 14:25:57 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 14:25:59 [OK] OK Sqoop can connect to MySQL.
+2026-02-15 14:25:59 [INFO] INFO Sqoop import: customers (status='ACTIVE') -> /user/hadoopuser/project/db_data/customers
+2026-02-15 14:26:19 [ERROR] ERROR Sqoop import failed: customers
+2026-02-15 14:27:07 [INFO] INFO === import_script.sh started ===
+2026-02-15 14:27:07 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 14:27:07 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 14:27:10 [OK] OK Sqoop can connect to MySQL.
+2026-02-15 14:27:10 [INFO] INFO Sqoop import: customers (status='ACTIVE') -> /user/hadoopuser/project/db_data/customers
+2026-02-15 14:27:43 [OK] OK Sqoop import completed: customers
+2026-02-15 14:27:43 [INFO] INFO Sqoop import: orders (order_date >= '2024-01-01' AND status='DELIVERED') -> /user/hadoopuser/project/db_data/orders
+2026-02-15 14:28:13 [OK] OK Sqoop import completed: orders
+2026-02-15 14:28:13 [INFO] INFO Verification:
+2026-02-15 14:28:13 [INFO] INFO Verifying customers: /user/hadoopuser/project/db_data/customers
+2026-02-15 14:28:17 [OK] OK   /user/hadoopuser/project/db_data/customers: 3 part file(s)
+2026-02-15 14:28:19 [OK] OK   Approximate line count: 400
+2026-02-15 14:28:19 [INFO] INFO Verifying orders: /user/hadoopuser/project/db_data/orders
+2026-02-15 14:28:24 [OK] OK   /user/hadoopuser/project/db_data/orders: 2 part file(s)
+2026-02-15 14:28:27 [OK] OK   Approximate line count: 1100
+2026-02-15 14:28:27 [INFO] INFO === import_script.sh finished successfully ===
+2026-02-15 14:35:26 [INFO] INFO === import_script.sh started ===
+2026-02-15 14:35:26 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 14:35:26 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 14:35:28 [OK] OK Sqoop can connect to MySQL.
+2026-02-15 14:35:28 [INFO] INFO Sqoop import: customers (status='ACTIVE') -> /user/hadoopuser/project/db_data/customers
+2026-02-15 14:35:57 [OK] OK Sqoop import completed: customers
+2026-02-15 14:35:57 [INFO] INFO Sqoop import: orders (order_date >= '2024-01-01' AND status='DELIVERED') -> /user/hadoopuser/project/db_data/orders
+2026-02-15 14:36:28 [OK] OK Sqoop import completed: orders
+2026-02-15 14:36:28 [INFO] INFO Verification:
+2026-02-15 14:36:28 [INFO] INFO Verifying customers: /user/hadoopuser/project/db_data/customers
+2026-02-15 14:36:33 [OK] OK   /user/hadoopuser/project/db_data/customers: 3 part file(s)
+2026-02-15 14:36:35 [OK] OK   Approximate line count: 400
+2026-02-15 14:36:35 [INFO] INFO Verifying orders: /user/hadoopuser/project/db_data/orders
+2026-02-15 14:36:41 [OK] OK   /user/hadoopuser/project/db_data/orders: 2 part file(s)
+2026-02-15 14:36:44 [OK] OK   Approximate line count: 1100
+2026-02-15 14:36:44 [INFO] INFO === import_script.sh finished successfully ===
+2026-02-15 22:43:39 [INFO] INFO === import_script.sh started ===
+2026-02-15 22:43:39 [INFO] INFO Checking MySQL at mysql:3306 (database: ecommerce_db) ...
+2026-02-15 22:43:39 [WARN] WARN mysql client not found or connection failed; trying Sqoop list-tables ...
+2026-02-15 22:43:40 [OK] OK Sqoop can connect to MySQL.
+2026-02-15 22:43:40 [INFO] INFO Sqoop import: customers (status='ACTIVE') -> /user/hadoopuser/project/db_data/customers
+2026-02-15 22:44:11 [OK] OK Sqoop import completed: customers
+2026-02-15 22:44:11 [INFO] INFO Sqoop import: orders (order_date >= '2024-01-01' AND status='DELIVERED') -> /user/hadoopuser/project/db_data/orders
+2026-02-15 22:44:38 [OK] OK Sqoop import completed: orders
+2026-02-15 22:44:38 [INFO] INFO Verification:
+2026-02-15 22:44:38 [INFO] INFO Verifying customers: /user/hadoopuser/project/db_data/customers
+2026-02-15 22:44:43 [OK] OK   /user/hadoopuser/project/db_data/customers: 3 part file(s)
+2026-02-15 22:44:45 [OK] OK   Approximate line count: 400
+2026-02-15 22:44:45 [INFO] INFO Verifying orders: /user/hadoopuser/project/db_data/orders
+2026-02-15 22:44:49 [OK] OK   /user/hadoopuser/project/db_data/orders: 2 part file(s)
+2026-02-15 22:44:51 [OK] OK   Approximate line count: 1100
+2026-02-15 22:44:51 [INFO] INFO === import_script.sh finished successfully ===
